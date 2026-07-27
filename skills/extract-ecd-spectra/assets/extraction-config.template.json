@@ -1,0 +1,42 @@
+{
+  "spectrum_id": "ECD-SPEC-0001",
+  "source": {
+    "reference_id": "ECD-REF-000",
+    "figure": "Figure 0",
+    "panel": "a",
+    "page": 1
+  },
+  "compound": {
+    "name": "",
+    "stereoisomer": "",
+    "enantiomer_assignment_source": ""
+  },
+  "experiment": {
+    "solvent": "",
+    "temperature_K": null
+  },
+  "calibration": {
+    "plot_left_px": 100,
+    "plot_right_px": 1000,
+    "plot_top_px": 100,
+    "plot_bottom_px": 700,
+    "x_min": 200.0,
+    "x_max": 400.0,
+    "x_unit": "nm",
+    "y_min": -50.0,
+    "y_max": 50.0,
+    "y_unit": "M-1_cm-1"
+  },
+  "trace": {
+    "mode": "color",
+    "target_rgb": [0, 0, 255],
+    "tolerance": 70,
+    "max_gap_columns": 6
+  },
+  "processing": {
+    "smoothing": "none",
+    "normalization": "none",
+    "spectral_shift": "none"
+  }
+}
+

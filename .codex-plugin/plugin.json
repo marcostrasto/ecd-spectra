@@ -1,0 +1,18 @@
+{
+  "name": "ecd-spectra",
+  "version": "0.1.0",
+  "description": "Extract, digitize, standardize, and validate experimental ECD spectra from scholarly PDFs and plot images.",
+  "author": {
+    "name": "Marcos D. García"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "ECD Spectra",
+    "shortDescription": "Recover validated numerical ECD spectra from literature.",
+    "longDescription": "An auditable workflow for locating ECD figures, extracting vector or raster curves, preserving signs and units, standardizing numerical data, and reviewing overlays before comparison with computed spectra.",
+    "developerName": "Marcos D. García",
+    "category": "Research",
+    "capabilities": [],
+    "defaultPrompt": "Use $extract-ecd-spectra to extract this published ECD spectrum into a validated numerical package."
+  }
+}

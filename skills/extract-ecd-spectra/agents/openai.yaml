@@ -1,0 +1,4 @@
+interface:
+  display_name: "Extract ECD Spectra"
+  short_description: "Digitize and standardize experimental ECD spectra"
+  default_prompt: "Use $extract-ecd-spectra to extract this published ECD spectrum into validated numerical data."
