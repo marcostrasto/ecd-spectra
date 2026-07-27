@@ -9,6 +9,7 @@
 - severe overlap that prevents trace separation;
 - overlay visibly following axes, labels, or another curve;
 - unrecorded smoothing, normalization, shifting, or scaling.
+- unresolved association between the spectrum and the stated stereoisomer.
 
 An unresolved solvent does not invalidate the digitized curve itself, but it
 does reject a package for direct solvent-aware simulation comparison.
@@ -26,6 +27,8 @@ does reject a package for direct solvent-aware simulation comparison.
 - solvent identity, mixture composition, provenance, concentration, path
   length, and temperature metadata;
 - explicit simulation-readiness status when solvent information is incomplete.
+- structured stereochemical evidence, evidence-to-sample relationship, crystal
+  structure availability, deposition identifiers, and source locations.
 
 ## Grades
 
@@ -38,3 +41,7 @@ does reject a package for direct solvent-aware simulation comparison.
 
 Record the grade and intended comparison type. Human overlay approval is
 mandatory for B and C.
+
+Report spectral-extraction quality separately from stereochemical-assignment
+confidence. A high-quality curve does not compensate for an uncertain
+enantiomer assignment.

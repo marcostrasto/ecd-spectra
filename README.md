@@ -12,6 +12,14 @@ also records structured solvent components, mixture ratios, provenance,
 concentration, path length, temperature, and other available acquisition
 conditions needed for subsequent simulation.
 
+The package also records stereochemical evidence from the article and
+supporting information: crystal-structure availability and deposition
+identifiers, absolute-structure refinement data, chemical or synthetic
+correlations, chiroptical comparisons, optical rotation, and chromatographic
+evidence. Each observation is linked to its source and to the measured sample;
+spectral quality and stereochemical-assignment confidence are assessed
+separately.
+
 ## Requirements
 
 - Codex with personal or team plugins enabled

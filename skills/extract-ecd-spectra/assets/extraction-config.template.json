@@ -9,7 +9,30 @@
   "compound": {
     "name": "",
     "stereoisomer": "",
-    "enantiomer_assignment_source": ""
+    "enantiomer_assignment_source": "",
+    "stereochemistry": {
+      "reported_assignment": null,
+      "assignment_status": "unresolved",
+      "assignment_scope": "measured_sample",
+      "evidence": [],
+      "crystal_structure": {
+        "availability": "not_searched",
+        "same_compound": null,
+        "same_stereoisomer": null,
+        "deposition_identifiers": [],
+        "absolute_structure_determined": null,
+        "refinement_statistics": [],
+        "source_locations": [],
+        "resources_searched": [],
+        "search_date": null,
+        "notes": null
+      },
+      "human_assessment": {
+        "status": "pending",
+        "confidence": null,
+        "notes": null
+      }
+    }
   },
   "experiment": {
     "solvent": {

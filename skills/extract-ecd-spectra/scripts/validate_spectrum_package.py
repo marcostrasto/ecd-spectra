@@ -40,6 +40,7 @@ def main() -> None:
 
     metadata = {}
     solvent_status = "missing"
+    stereochemistry_status = "missing"
     metadata_path = args.package / "metadata.json"
     if metadata_path.exists():
         metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
@@ -113,6 +114,94 @@ def main() -> None:
         ]:
             if nested(metadata, field) is None:
                 warnings.append(f"Experimental condition not reported: {field}")
+
+        stereochemistry = nested(metadata, "compound.stereochemistry")
+        if not isinstance(stereochemistry, dict):
+            warnings.append(
+                "Missing structured stereochemical metadata: "
+                "compound.stereochemistry"
+            )
+        else:
+            stereochemistry_status = stereochemistry.get("assignment_status")
+            if stereochemistry_status not in {
+                "assigned",
+                "relative_only",
+                "racemic",
+                "unreported",
+                "unresolved",
+            }:
+                warnings.append(
+                    "Invalid or missing stereochemistry.assignment_status"
+                )
+            evidence = stereochemistry.get("evidence")
+            if not isinstance(evidence, list):
+                warnings.append("stereochemistry.evidence must be a list")
+                evidence = []
+            for index, item in enumerate(evidence):
+                if not isinstance(item, dict):
+                    warnings.append(
+                        f"Invalid stereochemical evidence item: {index}"
+                    )
+                    continue
+                for field in [
+                    "type",
+                    "reported_observation",
+                    "reported_conclusion",
+                    "source_location",
+                    "directness",
+                ]:
+                    if item.get(field) in (None, ""):
+                        warnings.append(
+                            "Missing stereochemical evidence field "
+                            f"{index}.{field}"
+                        )
+                if item.get("type") in {
+                    "optical_rotation_comparison",
+                    "ecd_comparison",
+                    "chiral_chromatography",
+                } and item.get("directness") == "direct":
+                    warnings.append(
+                        f"Evidence item {index} should not be marked direct "
+                        "without an independent absolute-configuration link"
+                    )
+
+            crystal = stereochemistry.get("crystal_structure")
+            if not isinstance(crystal, dict):
+                warnings.append(
+                    "Missing stereochemistry.crystal_structure record"
+                )
+            else:
+                availability = crystal.get("availability")
+                if availability not in {
+                    "available",
+                    "reported_no_deposition",
+                    "reported_not_accessible",
+                    "not_found",
+                    "not_searched",
+                }:
+                    warnings.append(
+                        "Invalid crystal_structure.availability"
+                    )
+                if availability == "available" and not crystal.get(
+                    "deposition_identifiers"
+                ):
+                    warnings.append(
+                        "Available crystal structure lacks deposition identifier"
+                    )
+                if availability == "not_found" and (
+                    not crystal.get("resources_searched")
+                    or not crystal.get("search_date")
+                ):
+                    warnings.append(
+                        "Crystal structure not_found requires search scope and date"
+                    )
+            assessment = stereochemistry.get("human_assessment")
+            if not isinstance(assessment, dict) or assessment.get(
+                "status"
+            ) != "approved":
+                warnings.append(
+                    "Stereochemical evidence has not received human approval"
+                )
     canonical = args.package / "spectrum_canonical.csv"
     point_count = 0
     if canonical.exists():
@@ -158,6 +247,15 @@ def main() -> None:
         "simulation_readiness": {
             "solvent_aware_comparison": solvent_status == "resolved",
             "solvent_status": solvent_status,
+            "stereoisomer_specific_comparison": (
+                stereochemistry_status == "assigned"
+                and nested(
+                    metadata,
+                    "compound.stereochemistry.human_assessment.status",
+                )
+                == "approved"
+            ),
+            "stereochemistry_status": stereochemistry_status,
         },
     }
     report_path = args.package / "quality_report.json"

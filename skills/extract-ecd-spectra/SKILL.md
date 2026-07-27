@@ -1,6 +1,6 @@
 ---
 name: extract-ecd-spectra
-description: Extract, digitize, standardize, and validate experimental electronic circular dichroism (ECD/CD) spectra and their measurement conditions from scholarly PDFs or plot images. Use for locating ECD figures, recovering vector or raster curves, capturing solvent and other experimental conditions, calibrating axes, preserving sign and enantiomer identity, producing analysis-ready CSV/JSON packages, and quality-checking literature spectra before comparison with computed ECD.
+description: Extract, digitize, standardize, and validate experimental electronic circular dichroism (ECD/CD) spectra, measurement conditions, and stereochemical evidence from scholarly PDFs or plot images. Use for locating ECD figures, recovering curves, capturing solvents and acquisition conditions, finding crystal structures and direct or indirect stereochemical assignments, calibrating axes, preserving sign and sample identity, producing analysis-ready CSV/JSON packages, and quality-checking literature spectra before comparison with computed ECD.
 ---
 
 # Extract ECD Spectra
@@ -17,11 +17,15 @@ python scripts/locate_spectral_figures.py article.pdf --output candidates.json
 ```
 
 2. Read the candidate page, caption, experimental section, supporting
-   information, and nearby tables. Confirm compound, stereoisomer, solvent,
-   mixture composition, concentration, path length, temperature, x
-   quantity/unit, y quantity/unit, figure and panel. Record the source location
-   for every condition. Stop for human confirmation if sign, curve identity,
-   solvent identity, mixture ratio, or units are ambiguous.
+   information, and nearby tables. Search the complete article and supporting
+   information for absolute-configuration assignments, crystal structures,
+   deposition identifiers, synthetic correlation, chiroptical comparisons,
+   optical rotation, chiral chromatography, and other stereochemical evidence.
+   Confirm that each item refers to the measured sample or an explicitly
+   correlated compound. Also confirm all measurement conditions and axes.
+   Record the source location for every fact. Stop for human confirmation if
+   sample identity, stereochemical assignment, sign, curve identity, solvent,
+   mixture ratio, or units are ambiguous.
 
 3. Render the selected page:
 
@@ -55,10 +59,10 @@ python scripts/normalize_spectrum.py ECD-SPEC-0001/spectrum_raw.csv \
   --output ECD-SPEC-0001/spectrum_canonical.csv
 ```
 
-7. Complete `metadata.json`. Preserve the reported solvent string and also
-   create a structured solvent record following
-   `references/metadata-schema.md`. Never infer an unreported solvent,
-   composition, concentration, or temperature. Then validate:
+7. Complete `metadata.json`. Preserve the reported solvent string, create a
+   structured solvent record, and record each stereochemical evidence item and
+   crystal-structure search result following `references/metadata-schema.md`.
+   Never infer an unreported condition or configuration. Then validate:
 
 ```powershell
 python scripts/validate_spectrum_package.py ECD-SPEC-0001
@@ -83,6 +87,17 @@ python scripts/validate_spectrum_package.py ECD-SPEC-0001
 - Represent solvent mixtures component by component. Record ratio values and
   their basis only when stated; do not convert volume, mass, or mole fractions
   without the required physical data.
+- Treat anomalous-dispersion X-ray assignment or an explicitly justified
+  crystallographic absolute structure as direct evidence. Record deposition
+  identifiers, structure relationship, refinement statistic, and source.
+- Treat chemical correlation, stereospecific synthesis from a known precursor,
+  comparison with independently assigned material, and validated chiroptical
+  comparison as indirect evidence. Preserve the complete inference chain.
+- Do not treat optical-rotation sign, ECD sign, chiral HPLC retention order, or
+  enantiomeric excess alone as an absolute-configuration assignment.
+- Record `not_found` for a crystal structure only after searching the article,
+  supporting information, and named deposition resources; record the search
+  scope and date.
 - Keep spectra in mdeg when concentration and path length are unavailable. Do
   not label them as delta epsilon.
 
@@ -90,7 +105,8 @@ python scripts/validate_spectrum_package.py ECD-SPEC-0001
 
 Require human confirmation at:
 
-1. chemical identity, stereoisomer, curve, units, and experimental conditions;
+1. chemical identity, stereoisomer, stereochemical evidence, crystal-structure
+   relationship, curve, units, and experimental conditions;
 2. calibration points when OCR or ticks are ambiguous;
 3. final overlay and sign.
 
