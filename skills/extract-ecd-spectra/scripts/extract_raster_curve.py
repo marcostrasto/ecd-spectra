@@ -36,6 +36,59 @@ def choose_trace(mask: np.ndarray, max_jump: float) -> list[tuple[int, float]]:
     return trace
 
 
+def build_trace_mask(crop: np.ndarray, trace_config: dict) -> tuple[np.ndarray, dict]:
+    """Build a trace mask while preserving color identity in multi-curve plots."""
+    mode = trace_config.get("mode", "color")
+    tolerance = float(trace_config.get("tolerance", 70))
+    diagnostics: dict[str, float | bool | str] = {"mode": mode, "tolerance": tolerance}
+    if mode == "color":
+        target = np.asarray(trace_config["target_rgb"], dtype=float)
+        mask = np.linalg.norm(crop - target, axis=2) <= tolerance
+        diagnostics["target_rgb"] = [int(value) for value in target]
+    elif mode in {"dark", "neutral_dark"}:
+        luminance = crop @ np.asarray([0.2126, 0.7152, 0.0722])
+        channel_spread = crop.max(axis=2) - crop.min(axis=2)
+        allow_chromatic = bool(trace_config.get("allow_chromatic_dark", False))
+        max_chroma = float(trace_config.get("max_chroma", 24))
+        mask = luminance <= tolerance
+        if not allow_chromatic:
+            mask &= channel_spread <= max_chroma
+        diagnostics["allow_chromatic_dark"] = allow_chromatic
+        diagnostics["max_chroma"] = max_chroma
+        diagnostics["chromatic_dark_pixels_rejected"] = int(
+            np.count_nonzero((luminance <= tolerance) & (channel_spread > max_chroma))
+        )
+    else:
+        raise SystemExit("trace.mode must be 'color', 'dark', or 'neutral_dark'")
+    requested_edge_guard = int(trace_config.get("edge_guard_columns", 0))
+    edge_guard_fraction = float(trace_config.get("edge_guard_fraction", 0.0))
+    if not 0 <= edge_guard_fraction < 0.5:
+        raise SystemExit("trace.edge_guard_fraction must be at least 0 and below 0.5")
+    fractional_guard = int(math.ceil(mask.shape[1] * edge_guard_fraction))
+    edge_guard = max(requested_edge_guard, fractional_guard)
+    if edge_guard < 0 or edge_guard * 2 >= mask.shape[1]:
+        raise SystemExit("trace.edge_guard_columns must leave at least one plot column")
+    if edge_guard:
+        mask[:, :edge_guard] = False
+        mask[:, -edge_guard:] = False
+    diagnostics["edge_guard_columns_requested"] = requested_edge_guard
+    diagnostics["edge_guard_fraction"] = edge_guard_fraction
+    diagnostics["edge_guard_columns"] = edge_guard
+    max_column_fraction = float(
+        trace_config.get("max_mask_fraction_per_column", 0.05)
+    )
+    if not 0 < max_column_fraction <= 1:
+        raise SystemExit(
+            "trace.max_mask_fraction_per_column must be greater than 0 and at most 1"
+        )
+    dense_columns = mask.mean(axis=0) > max_column_fraction
+    mask[:, dense_columns] = False
+    diagnostics["max_mask_fraction_per_column"] = max_column_fraction
+    diagnostics["dense_columns_rejected"] = int(np.count_nonzero(dense_columns))
+    diagnostics["selected_pixels"] = int(np.count_nonzero(mask))
+    return mask, diagnostics
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Extract an isolated raster spectral trace using explicit calibration."
@@ -55,16 +108,8 @@ def main() -> None:
         raise SystemExit("Plot pixel bounds fall outside the image")
 
     crop = np.asarray(image)[top : bottom + 1, left : right + 1].astype(float)
-    mode = trace_config.get("mode", "color")
-    tolerance = float(trace_config.get("tolerance", 70))
-    if mode == "color":
-        target = np.asarray(trace_config["target_rgb"], dtype=float)
-        mask = np.linalg.norm(crop - target, axis=2) <= tolerance
-    elif mode == "dark":
-        luminance = crop @ np.asarray([0.2126, 0.7152, 0.0722])
-        mask = luminance <= tolerance
-    else:
-        raise SystemExit("trace.mode must be 'color' or 'dark'")
+    mask, mask_diagnostics = build_trace_mask(crop, trace_config)
+    mode = str(mask_diagnostics["mode"])
 
     max_jump = float(trace_config.get("max_jump_px", max(8, crop.shape[0] * 0.08)))
     trace = choose_trace(mask, max_jump)
@@ -170,6 +215,7 @@ def main() -> None:
     report = {
         "status": "needs_human_review",
         "trace_mode": mode,
+        "mask_diagnostics": mask_diagnostics,
         "points": len(rows),
         "plot_width_columns": crop.shape[1],
         "detected_column_fraction": detected_columns / crop.shape[1],
@@ -179,6 +225,13 @@ def main() -> None:
     }
     if report["detected_column_fraction"] < 0.65:
         report["warnings"].append("Trace covers less than 65% of calibrated plot width")
+    if (
+        mode in {"dark", "neutral_dark"}
+        and mask_diagnostics.get("allow_chromatic_dark") is True
+    ):
+        report["warnings"].append(
+            "Chromatic dark pixels were allowed; multi-color plots can switch curve identity"
+        )
     if not all(math.isfinite(v) for row in rows for v in row[:2]):
         report["warnings"].append("Non-finite extracted coordinates")
     (args.output_dir / "quality_report.json").write_text(
@@ -198,6 +251,7 @@ def main() -> None:
             "tool": "extract_raster_curve.py",
             "calibration": cal,
             "trace": trace_config,
+            "mask_diagnostics": mask_diagnostics,
         },
         "human_validation": {"status": "pending", "validator": None, "date": None, "notes": None},
     }

@@ -16,6 +16,12 @@ also records structured solvent components, mixture ratios, provenance,
 concentration, path length, temperature, and other available acquisition
 conditions needed for subsequent simulation.
 
+For multi-curve plots, the raster extractor preserves trace color identity,
+rejects chromatic pixels when following black or gray curves, suppresses dense
+vertical plot geometry, and records these decisions in the final report.
+Ambiguous same-color crossings remain a supervised WebPlotDigitizer or Engauge
+task.
+
 The package also records stereochemical evidence from the article and
 supporting information: crystal-structure availability and deposition
 identifiers, absolute-structure refinement data, chemical or synthetic

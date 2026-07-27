@@ -1,6 +1,6 @@
 ---
 name: extract-ecd-spectra
-description: Extract, digitize, standardize, and validate experimental electronic circular dichroism (ECD/CD) spectra, measurement conditions, and stereochemical evidence from scholarly PDFs or plot images. Use for locating ECD figures, recovering curves, capturing solvents and acquisition conditions, finding crystal structures and direct or indirect stereochemical assignments, calibrating axes, preserving sign and sample identity, producing analysis-ready CSV/JSON packages, and quality-checking literature spectra before comparison with computed ECD.
+description: Extract, separate, digitize, standardize, and validate experimental electronic circular dichroism (ECD/CD) spectra, measurement conditions, and stereochemical evidence from scholarly PDFs or plot images. Use for locating ECD figures, recovering individual traces from multi-curve plots, capturing solvents and acquisition conditions, finding crystal structures and direct or indirect stereochemical assignments, calibrating axes, preserving sign and sample identity, producing analysis-ready CSV/JSON packages, and quality-checking literature spectra before comparison with computed ECD.
 ---
 
 # Extract ECD Spectra
@@ -54,6 +54,17 @@ python scripts/render_pdf_page.py article.pdf --page 7 --dpi 900 --output page.p
 4. Prefer numerical source data. If unavailable, inspect whether the curve can
    be isolated by color or darkness. Record pixel calibration and metadata in a
    JSON configuration based on `assets/extraction-config.template.json`.
+   In plots with multiple colors, use `color` for a known RGB trace or
+   `neutral_dark`/`dark` for a black or gray trace. Dark modes reject chromatic
+   pixels by default using `max_chroma`; never set `allow_chromatic_dark` to
+   true for a multi-color plot. A luminance threshold alone can include
+   saturated red or blue ink and cause the tracker to switch curves at a
+   crossing. Use `edge_guard_columns` when the calibrated crop includes a
+   vertical plot border and retain the resolution-scaled
+   `edge_guard_fraction`; the larger guard is applied and remains visibly
+   documented in the mask and extraction metadata. Keep
+   `max_mask_fraction_per_column` enabled so columns dominated by vertical
+   axes, borders, or annotations are rejected as non-curve geometry.
 
 5. Extract and overlay:
 
@@ -65,6 +76,11 @@ Use the automatic result only when the overlay follows the printed trace.
 Inspect the cropped `source_figure.png`, binary `trace_mask.png`, and enlarged
 `extraction_overlay.png`. Inspect `isolated_spectrum.png` to verify the actual
 curve exported to CSV; never validate from a full PDF page thumbnail.
+Inspect every crossing in a multi-curve plot. If the selected trace changes
+color, follows a mirror-image band, or resumes on another curve after a gap,
+reject the automatic extraction and revise the mask. Curves with the same
+color, unresolved overprinting, or ambiguous identity require supervised
+digitization.
 For inseparable curves, use WebPlotDigitizer or Engauge and place its untouched
 CSV in `spectrum_raw.csv`; still generate and review an overlay.
 

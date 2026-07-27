@@ -177,6 +177,30 @@ def evidence_rows(metadata: dict) -> list[dict]:
     return evidence if isinstance(evidence, list) else []
 
 
+def detection_rows(metadata: dict) -> list[tuple[str, str]]:
+    trace = nested(metadata, "extraction", "trace")
+    diagnostics = nested(metadata, "extraction", "mask_diagnostics")
+    trace = trace if isinstance(trace, dict) else {}
+    diagnostics = diagnostics if isinstance(diagnostics, dict) else {}
+    return [
+        ("Source type", display(nested(metadata, "extraction", "source_type"))),
+        ("Extraction tool", display(nested(metadata, "extraction", "tool"))),
+        ("Trace mode", display(diagnostics.get("mode", trace.get("mode")))),
+        ("Darkness/RGB tolerance", display(diagnostics.get("tolerance", trace.get("tolerance")))),
+        ("Maximum chroma", display(diagnostics.get("max_chroma", trace.get("max_chroma")))),
+        ("Chromatic dark pixels allowed", display(diagnostics.get("allow_chromatic_dark"))),
+        ("Chromatic dark pixels rejected", display(diagnostics.get("chromatic_dark_pixels_rejected"))),
+        ("Dense columns rejected", display(diagnostics.get("dense_columns_rejected"))),
+        ("Edge guard fraction", display(diagnostics.get("edge_guard_fraction", trace.get("edge_guard_fraction")))),
+        ("Edge guard columns", display(diagnostics.get("edge_guard_columns"))),
+        ("Maximum jump / px", display(trace.get("max_jump_px"))),
+        ("Maximum displayed gap / columns", display(trace.get("max_gap_columns"))),
+        ("Smoothing", display(nested(metadata, "processing", "smoothing"))),
+        ("Normalization", display(nested(metadata, "processing", "normalization"))),
+        ("Spectral shift", display(nested(metadata, "processing", "spectral_shift"))),
+    ]
+
+
 def make_markdown(
     package: Path, metadata: dict, quality: dict, progress: list[dict]
 ) -> str:
@@ -195,6 +219,9 @@ def make_markdown(
         )
     lines.extend(["", "## Experimental conditions", "", "| Field | Value |", "|---|---|"])
     for key, value in condition_rows(metadata):
+        lines.append(f"| {key} | {str(value).replace('|', '\\|')} |")
+    lines.extend(["", "## Curve detection process", "", "| Field | Value |", "|---|---|"])
+    for key, value in detection_rows(metadata):
         lines.append(f"| {key} | {str(value).replace('|', '\\|')} |")
     lines.extend(["", "## Visual evidence", ""])
     for label, filename in IMAGE_FILES:
@@ -241,6 +268,10 @@ def make_html(
     conditions = "".join(
         f"<tr><th>{html.escape(key)}</th><td>{html.escape(value)}</td></tr>"
         for key, value in condition_rows(metadata)
+    )
+    detection = "".join(
+        f"<tr><th>{html.escape(key)}</th><td>{html.escape(value)}</td></tr>"
+        for key, value in detection_rows(metadata)
     )
     images = "".join(
         f'<figure><img src="{data_uri(package / filename)}" '
@@ -312,6 +343,7 @@ body{{background:white}}main{{max-width:none}}.panel,figure,article{{break-insid
 <section><h2>Workflow progress</h2><ol class="stages">{stage_cards}</ol></section>
 <section><h2>Extracted spectrum</h2><canvas id="plot" width="1080" height="420"></canvas></section>
 <section><h2>Visual evidence</h2><div class="grid">{images or '<p>No images available.</p>'}</div></section>
+<section><h2>Curve detection process</h2><table>{detection}</table></section>
 <section class="grid"><div><h2>Experimental conditions</h2><table>{conditions}</table></div>
 <div><h2>Validation</h2><div class="panel"><p><b>Quality status:</b>
 {html.escape(display(quality.get("status")))}</p><ul>{warning_html}</ul></div></div></section>
@@ -370,4 +402,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

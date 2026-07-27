@@ -83,9 +83,13 @@
     "y_unit": "M-1_cm-1"
   },
   "trace": {
-    "mode": "color",
-    "target_rgb": [0, 0, 255],
-    "tolerance": 70,
+    "mode": "neutral_dark",
+    "tolerance": 90,
+    "max_chroma": 24,
+    "allow_chromatic_dark": false,
+    "edge_guard_columns": 6,
+    "edge_guard_fraction": 0.008,
+    "max_mask_fraction_per_column": 0.05,
     "max_gap_columns": 6
   },
   "processing": {
