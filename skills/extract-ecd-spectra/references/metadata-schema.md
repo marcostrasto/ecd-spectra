@@ -138,4 +138,7 @@ trace_mask.png
 extraction_overlay.png
 isolated_spectrum.png
 quality_report.json
+visual-progress.json
+extraction-report.html
+extraction-report.md
 ```

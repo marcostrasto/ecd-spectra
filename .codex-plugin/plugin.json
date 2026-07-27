@@ -1,6 +1,6 @@
 {
   "name": "ecd-spectra",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Precise extraction of experimental ECD spectra, measurement conditions, and stereochemical evidence from scientific literature.",
   "author": {
     "name": "Marcos D. García"
@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "ECD Spectra",
     "shortDescription": "Recover ECD spectra, conditions, and stereochemical evidence.",
-    "longDescription": "An auditable workflow for extracting ECD curves, experimental conditions, crystal-structure availability, deposition records, and direct or indirect stereochemical assignments before comparison with computed spectra.",
+    "longDescription": "An auditable visual workflow for extracting ECD curves, showing progress and overlays, capturing experimental conditions and stereochemical evidence, and generating self-contained HTML and Markdown reports before comparison with computed spectra.",
     "developerName": "Marcos D. García",
     "category": "Research",
     "capabilities": [],

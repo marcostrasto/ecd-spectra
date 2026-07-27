@@ -7,7 +7,11 @@ measurement conditions from scientific literature.
 The plugin contains the `extract-ecd-spectra` skill. It prioritizes original
 numerical data and vector recovery, supports raster tracing when appropriate,
 and requires human confirmation of chemical identity, calibration, sign, and
-the final extraction overlay. It preserves the reported solvent description and
+the final extraction overlay. During execution it shows numbered progress,
+figure crops, calibration views, isolated curves, and curve-level overlays.
+Each completed spectrum package includes a self-contained visual HTML report
+and a Markdown report; neither requires a server or network connection. It
+preserves the reported solvent description and
 also records structured solvent components, mixture ratios, provenance,
 concentration, path length, temperature, and other available acquisition
 conditions needed for subsequent simulation.
@@ -65,6 +69,7 @@ provides an end-to-end training case based on a rigid organic
 - an exact Codex prompt for running `$extract-ecd-spectra`;
 - an expected inventory of ECD conditions and stereochemical evidence;
 - explicit guidance to separate the experimental E1 and E2 curves in Figure 3.
+- visual progress in the conversation and a final HTML/Markdown report.
 
 The publisher PDFs remain outside version control and are downloaded locally
 only when the example is run.

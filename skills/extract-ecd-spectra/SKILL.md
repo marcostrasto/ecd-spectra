@@ -8,6 +8,23 @@ description: Extract, digitize, standardize, and validate experimental electroni
 Create an auditable spectrum package. Never silently smooth, normalize, shift,
 rescale, invert, or assign an enantiomer.
 
+## Visual progress
+
+Show progress in the conversation throughout the workflow. Use a numbered
+nine-stage status line and update it after each material step:
+
+```text
+[1/9] Sources inspected       complete
+[2/9] ECD figure located      complete - Figure 3, PDF page 3
+[3/9] Curves identified       needs review
+```
+
+At stages 2, 5, 6, and 7, display the relevant local image when available:
+the figure crop, calibration view, isolated spectrum, and curve-level overlay.
+Do not show the same full PDF page as evidence for multiple stages. Explain
+what changed and what the user must inspect. Pause only at the human
+checkpoints below.
+
 ## Required workflow
 
 1. Locate candidate pages:
@@ -71,6 +88,18 @@ python scripts/validate_spectrum_package.py ECD-SPEC-0001
 8. Require human approval of `extraction_overlay.png` and the report before
    setting `human_validation.status` to `approved`.
 
+9. Generate the self-contained visual report:
+
+```powershell
+python scripts/generate_visual_report.py ECD-SPEC-0001
+```
+
+Open or link `extraction-report.html` for visual review and also deliver
+`extraction-report.md`, `visual-progress.json`, the CSV files, and
+`metadata.json`. Regenerate the reports after any metadata, validation, or
+extraction change. The HTML report is read-only and requires no server or
+network connection.
+
 ## Branching rules
 
 - Prefer original supporting data over digitization.
@@ -111,6 +140,12 @@ Require human confirmation at:
 3. final overlay and sign.
 
 All other checks may run automatically. Escalate any validator warning.
+
+## Final handoff
+
+Summarize the final status of all nine stages. Link the HTML and Markdown
+reports and each canonical CSV. State explicitly which spectra are approved,
+pending review, rejected, or unsuitable for simulation comparison.
 
 ## References
 
