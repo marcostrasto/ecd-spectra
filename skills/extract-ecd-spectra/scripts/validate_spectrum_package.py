@@ -39,6 +39,7 @@ def main() -> None:
             errors.append(f"Missing required file: {name}")
 
     metadata = {}
+    solvent_status = "missing"
     metadata_path = args.package / "metadata.json"
     if metadata_path.exists():
         metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
@@ -55,6 +56,63 @@ def main() -> None:
             value = nested(metadata, field)
             if value in (None, ""):
                 warnings.append(f"Missing or empty metadata: {field}")
+
+        solvent = nested(metadata, "experiment.solvent")
+        if not isinstance(solvent, dict):
+            warnings.append(
+                "Missing structured solvent metadata: experiment.solvent"
+            )
+            solvent_status = "missing"
+        else:
+            solvent_status = solvent.get("status")
+            if solvent_status not in {
+                "resolved",
+                "partially_resolved",
+                "unreported",
+                "unresolved",
+            }:
+                warnings.append("Invalid or missing experiment.solvent.status")
+            if not solvent.get("reported_as") and solvent_status not in {
+                "unreported",
+                "unresolved",
+            }:
+                warnings.append("Missing experiment.solvent.reported_as")
+            if not solvent.get("source_location"):
+                warnings.append("Missing experiment.solvent.source_location")
+            components = solvent.get("components")
+            if solvent_status in {"resolved", "partially_resolved"}:
+                if not isinstance(components, list) or not components:
+                    warnings.append("Missing experiment.solvent.components")
+                elif any(
+                    not isinstance(component, dict) or not component.get("name")
+                    for component in components
+                ):
+                    warnings.append(
+                        "Each experiment.solvent component requires a name"
+                    )
+            if isinstance(components, list) and len(components) > 1:
+                if not solvent.get("mixture_ratio_reported_as"):
+                    warnings.append(
+                        "Solvent mixture lacks mixture_ratio_reported_as"
+                    )
+                fraction_units = {
+                    component.get("fraction_unit")
+                    for component in components
+                    if isinstance(component, dict)
+                    and component.get("fraction") is not None
+                }
+                if len(fraction_units) > 1:
+                    warnings.append(
+                        "Solvent component fractions use inconsistent units"
+                    )
+
+        for field in [
+            "experiment.concentration.value",
+            "experiment.path_length.value",
+            "experiment.temperature_K",
+        ]:
+            if nested(metadata, field) is None:
+                warnings.append(f"Experimental condition not reported: {field}")
     canonical = args.package / "spectrum_canonical.csv"
     point_count = 0
     if canonical.exists():
@@ -97,6 +155,10 @@ def main() -> None:
         "errors": errors,
         "warnings": warnings,
         "human_validation_required": validation != "approved",
+        "simulation_readiness": {
+            "solvent_aware_comparison": solvent_status == "resolved",
+            "solvent_status": solvent_status,
+        },
     }
     report_path = args.package / "quality_report.json"
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")

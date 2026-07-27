@@ -12,8 +12,40 @@
     "enantiomer_assignment_source": ""
   },
   "experiment": {
-    "solvent": "",
-    "temperature_K": null
+    "solvent": {
+      "reported_as": "",
+      "components": [
+        {
+          "name": "",
+          "normalized_name": null,
+          "identifier": null,
+          "fraction": null,
+          "fraction_unit": null
+        }
+      ],
+      "mixture_ratio_reported_as": null,
+      "source_location": "",
+      "status": "unresolved"
+    },
+    "concentration": {
+      "value": null,
+      "unit": null,
+      "source_location": null
+    },
+    "path_length": {
+      "value": null,
+      "unit": null,
+      "source_location": null
+    },
+    "temperature_K": null,
+    "temperature_reported_as": null,
+    "instrument": null,
+    "cell_material": null,
+    "spectral_bandwidth_nm": null,
+    "scan_rate_nm_min": null,
+    "number_of_scans": null,
+    "pH": null,
+    "other_reported_conditions": []
   },
   "calibration": {
     "plot_left_px": 100,
@@ -39,4 +71,3 @@
     "spectral_shift": "none"
   }
 }
-

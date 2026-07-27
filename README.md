@@ -1,13 +1,16 @@
 # ECD Spectra
 
 Codex plugin for precise, auditable extraction and standardization of
-experimental electronic circular dichroism (ECD/CD) spectra from scientific
-literature.
+experimental electronic circular dichroism (ECD/CD) spectra and their
+measurement conditions from scientific literature.
 
 The plugin contains the `extract-ecd-spectra` skill. It prioritizes original
 numerical data and vector recovery, supports raster tracing when appropriate,
 and requires human confirmation of chemical identity, calibration, sign, and
-the final extraction overlay.
+the final extraction overlay. It preserves the reported solvent description and
+also records structured solvent components, mixture ratios, provenance,
+concentration, path length, temperature, and other available acquisition
+conditions needed for subsequent simulation.
 
 ## Requirements
 

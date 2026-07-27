@@ -1,6 +1,6 @@
 ---
 name: extract-ecd-spectra
-description: Extract, digitize, standardize, and validate experimental electronic circular dichroism (ECD/CD) spectra from scholarly PDFs or plot images. Use for locating ECD figures, rendering or cropping spectral panels, recovering vector or raster curves, calibrating wavelength or energy axes, preserving sign and enantiomer identity, converting spectra to analysis-ready CSV/JSON packages, generating overlays, and quality-checking literature spectra before comparison with computed ECD.
+description: Extract, digitize, standardize, and validate experimental electronic circular dichroism (ECD/CD) spectra and their measurement conditions from scholarly PDFs or plot images. Use for locating ECD figures, recovering vector or raster curves, capturing solvent and other experimental conditions, calibrating axes, preserving sign and enantiomer identity, producing analysis-ready CSV/JSON packages, and quality-checking literature spectra before comparison with computed ECD.
 ---
 
 # Extract ECD Spectra
@@ -16,9 +16,12 @@ rescale, invert, or assign an enantiomer.
 python scripts/locate_spectral_figures.py article.pdf --output candidates.json
 ```
 
-2. Read the candidate page and its caption. Confirm compound, stereoisomer,
-   solvent, temperature, x quantity/unit, y quantity/unit, figure and panel.
-   Stop for human confirmation if sign, curve identity, or units are ambiguous.
+2. Read the candidate page, caption, experimental section, supporting
+   information, and nearby tables. Confirm compound, stereoisomer, solvent,
+   mixture composition, concentration, path length, temperature, x
+   quantity/unit, y quantity/unit, figure and panel. Record the source location
+   for every condition. Stop for human confirmation if sign, curve identity,
+   solvent identity, mixture ratio, or units are ambiguous.
 
 3. Render the selected page:
 
@@ -52,7 +55,10 @@ python scripts/normalize_spectrum.py ECD-SPEC-0001/spectrum_raw.csv \
   --output ECD-SPEC-0001/spectrum_canonical.csv
 ```
 
-7. Complete `metadata.json`, then validate:
+7. Complete `metadata.json`. Preserve the reported solvent string and also
+   create a structured solvent record following
+   `references/metadata-schema.md`. Never infer an unreported solvent,
+   composition, concentration, or temperature. Then validate:
 
 ```powershell
 python scripts/validate_spectrum_package.py ECD-SPEC-0001
@@ -71,6 +77,12 @@ python scripts/validate_spectrum_package.py ECD-SPEC-0001
   annotated, or low-resolution curves.
 - Reject a quantitative extraction when axes, zero line, units, enantiomer, or
   trace identity cannot be established.
+- Mark the package unsuitable for direct simulation comparison when solvent
+  identity is unresolved. Preserve spectra with an unreported solvent, but
+  expose the omission as a validation warning.
+- Represent solvent mixtures component by component. Record ratio values and
+  their basis only when stated; do not convert volume, mass, or mole fractions
+  without the required physical data.
 - Keep spectra in mdeg when concentration and path length are unavailable. Do
   not label them as delta epsilon.
 
@@ -78,7 +90,7 @@ python scripts/validate_spectrum_package.py ECD-SPEC-0001
 
 Require human confirmation at:
 
-1. chemical identity, stereoisomer, curve and units;
+1. chemical identity, stereoisomer, curve, units, and experimental conditions;
 2. calibration points when OCR or ticks are ambiguous;
 3. final overlay and sign.
 
