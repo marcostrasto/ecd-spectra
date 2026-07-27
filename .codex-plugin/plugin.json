@@ -1,7 +1,7 @@
 {
   "name": "ecd-spectra",
   "version": "0.1.0",
-  "description": "Extract, digitize, standardize, and validate experimental ECD spectra from scholarly PDFs and plot images.",
+  "description": "Precise, auditable extraction and standardization of experimental ECD spectra from scientific literature.",
   "author": {
     "name": "Marcos D. García"
   },
