@@ -1,0 +1,79 @@
+{
+  "purpose": "Human-readable checkpoint for the source inventory; not digitized spectral data.",
+  "analyte": {
+    "name": "7,12,17-trioxa[11]helicene",
+    "class": "rigid organic heterohelicene",
+    "samples": [
+      {
+        "label": "E1",
+        "reported_identity": "(+)-E1 (P)",
+        "enantiomeric_purity": "nearly 100% ee"
+      },
+      {
+        "label": "E2",
+        "reported_identity": "(-)-E2 (M)",
+        "enantiomeric_purity": ">95% ee"
+      }
+    ]
+  },
+  "experimental_ecd": {
+    "article_pdf_page": 3,
+    "printed_page": 2422,
+    "figure": "Figure 3",
+    "wavelength_range_nm": [210, 500],
+    "solvent": {
+      "reported": "tetrahydrofuran (THF)",
+      "components": [
+        {
+          "name": "tetrahydrofuran",
+          "abbreviation": "THF"
+        }
+      ]
+    },
+    "concentration_M": 0.0001,
+    "instrument": "JASCO J-1500",
+    "cell_material": "quartz",
+    "path_length_cm": 0.1,
+    "scan_speed_nm_per_min": 10,
+    "accumulations": 2,
+    "baseline": "pure-solvent spectrum subtracted",
+    "reported_features_nm": [217, 240, 257, 280, 305, 322, 337, 375, 398, 415],
+    "curve_inventory": [
+      "E1 experimental",
+      "E2 experimental",
+      "E2 calculated"
+    ],
+    "digitization_note": "Export E1 and E2 experimental curves separately; do not misclassify the calculated E2 trace."
+  },
+  "stereochemical_evidence": [
+    {
+      "type": "chiral_chromatographic_resolution",
+      "summary": "Enantiomers resolved by HPLC on a Chiralart Cellulose SC column; elution order and ee are reported.",
+      "source": "article, Methods, Chiral Separation"
+    },
+    {
+      "type": "optical_rotation",
+      "summary": "[alpha]D25 +3803 (c 0.160, CHCl3) for E1 and -3610 (c 0.154, CHCl3) for E2.",
+      "source": "article, Methods, Chiral Separation"
+    },
+    {
+      "type": "crystal_structure_in_prior_work",
+      "summary": "The article states that synthesis and X-ray structure were reported previously; verify the cited synthesis paper before treating this as an absolute-configuration assignment for the measured samples.",
+      "source": "article, Introduction, reference 30",
+      "requires_follow_up": true
+    },
+    {
+      "type": "mirror_image_ecd",
+      "summary": "The two enantiomers give nearly mirror-image experimental ECD spectra.",
+      "source": "article, Figure 3 and Results",
+      "interpretation_limit": "Supports enantiomeric relationship but is not, by itself, an independent absolute-configuration assignment."
+    }
+  ],
+  "human_checkpoints": [
+    "Confirm the mapping E1=(+)-(P) and E2=(-)-(M) from the article.",
+    "Confirm axis units and calibration from the rendered Figure 3 panels.",
+    "Approve a curve-level overlay for each extracted experimental trace.",
+    "Follow reference 30 and verify how the P/M assignment relates to the reported crystal structure."
+  ]
+}
+

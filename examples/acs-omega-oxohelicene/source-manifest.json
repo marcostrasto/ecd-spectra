@@ -1,0 +1,29 @@
+{
+  "example_id": "ACS-OMEGA-OXOHELICENE-2021",
+  "title": "Origins of Optical Activity in an Oxo-Helicene: Experimental and Computational Studies",
+  "journal": "ACS Omega",
+  "year": 2021,
+  "volume": 6,
+  "pages": "2420-2428",
+  "doi": "10.1021/acsomega.0c06079",
+  "pmcid": "PMC7841950",
+  "publisher_url": "https://pubs.acs.org/doi/10.1021/acsomega.0c06079",
+  "pmc_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7841950/",
+  "license_reported_in_article": "CC-BY-NC-ND",
+  "oa_package_url": "https://ftp.ncbi.nlm.nih.gov/pub/pmc/deprecated/oa_package/02/c7/PMC7841950.tar.gz",
+  "oa_package_sha256": "B83BC350A3F4D9574FB1451711DC1D21162927B4FBA9F01A1847D06C813B269C",
+  "files": [
+    {
+      "archive_path": "PMC7841950/ao0c06079.pdf",
+      "local_name": "article.pdf",
+      "sha256": "7B83E28DDB3DEE5DA87ABDAE1F3D3535B814EB937AFFE091B4DD39E9D48E5CCD"
+    },
+    {
+      "archive_path": "PMC7841950/ao0c06079_si_001.pdf",
+      "local_name": "supporting-information.pdf",
+      "sha256": "679630E33F93B759E6C6B31E4ED0DA8DECC53792B3898431A2649107E4EB6D1A"
+    }
+  ],
+  "checked_on": "2026-07-27"
+}
+

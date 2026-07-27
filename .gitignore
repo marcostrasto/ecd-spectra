@@ -9,6 +9,7 @@ build/
 
 # Research inputs and generated extraction packages should remain outside the plugin.
 *.pdf
+examples/*/source/
 working/
 outputs/
 ECD-SPEC-*/

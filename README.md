@@ -54,6 +54,21 @@ does not include publisher PDFs or digitized literature spectra. Keep those
 materials in a separate, access-controlled research directory and record their
 bibliographic identifiers in each spectrum package.
 
+## Worked example
+
+[`examples/acs-omega-oxohelicene/`](examples/acs-omega-oxohelicene/)
+provides an end-to-end training case based on a rigid organic
+7,12,17-trioxa[11]helicene. It includes:
+
+- an official-source download script with SHA-256 verification;
+- direct article, Supporting Information, DOI, and PubMed Central links;
+- an exact Codex prompt for running `$extract-ecd-spectra`;
+- an expected inventory of ECD conditions and stereochemical evidence;
+- explicit guidance to separate the experimental E1 and E2 curves in Figure 3.
+
+The publisher PDFs remain outside version control and are downloaded locally
+only when the example is run.
+
 ## Validation policy
 
 Automated extraction is provisional. A spectrum is accepted only after a person
