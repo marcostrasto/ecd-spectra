@@ -43,11 +43,10 @@ If you prefer a prepared training case, use the
 ## Install in Codex from GitHub
 
 1. Install and open the Codex desktop app.
-2. Open its terminal and paste these two commands:
+2. Open its terminal and paste this single line:
 
 ```powershell
-codex plugin marketplace add marcostrasto/ecd-spectra
-codex plugin add ecd-spectra@ecd-spectra
+codex plugin marketplace add marcostrasto/ecd-spectra --ref main; codex plugin add ecd-spectra@ecd-spectra
 ```
 
 3. Restart Codex and open the folder containing your PDFs as a new project.
@@ -59,10 +58,12 @@ folder. First show me the experimental ECD curves that can be identified
 unambiguously. Do not extract anything until I choose a candidate.
 ```
 
-The plugin first shows a short candidate list. Select an eligible curve by its
-number. It then displays a ten-step progress monitor and pauses only when it
-needs you to confirm the candidate, an ambiguous calibration, or the final
-curve overlay.
+The plugin checks its PDF tools automatically and asks once before installing
+anything missing. It first shows a short candidate list; choose a curve by its
+number or name. It then displays a ten-step progress monitor and pauses only
+when it needs you to confirm the candidate, an ambiguous calibration, or the
+final curve overlay. You do not need to type candidate IDs or understand the
+technical files produced in the background.
 
 ## What the result means
 
@@ -76,9 +77,9 @@ fully completed validation.
 
 ## Technical requirements
 
-The current beta uses Python 3.10 or newer, the packages in
-`requirements.txt`, and Poppler (`pdftoppm`) for PDF rendering. Codex may ask
-permission to install a missing local dependency. WebPlotDigitizer or Engauge
+The current beta uses Python 3.10 or newer and prepares the packages in
+`requirements.txt` after asking permission. A separate Poppler installation is
+no longer required. WebPlotDigitizer or Engauge
 Digitizer is required only when curves cannot be separated safely by the
 automatic workflow.
 
