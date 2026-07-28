@@ -1,3 +1,4 @@
+import ast
 import importlib.util
 import json
 from pathlib import Path
@@ -22,6 +23,16 @@ report = load(
     "generate_visual_report",
     "skills/extract-ecd-spectra/scripts/generate_visual_report.py",
 )
+
+
+def test_all_scripts_parse_with_declared_python_310_grammar():
+    scripts = ROOT / "skills" / "extract-ecd-spectra" / "scripts"
+    for path in scripts.glob("*.py"):
+        ast.parse(
+            path.read_text(encoding="utf-8-sig"),
+            filename=str(path),
+            feature_version=(3, 10),
+        )
 
 
 def test_candidate_requires_experimental_structure_and_solvent():

@@ -275,7 +275,8 @@ def make_markdown(
         lines.append(f"| {key} | {escaped_value} |")
     lines.extend(["", "## Curve detection process", "", "| Field | Value |", "|---|---|"])
     for key, value in detection_rows(metadata):
-        lines.append(f"| {key} | {str(value).replace('|', '\\|')} |")
+        escaped_value = str(value).replace("|", "\\|")
+        lines.append(f"| {key} | {escaped_value} |")
     lines.extend(["", "## Visual evidence", ""])
     for label, filename in IMAGE_FILES:
         if (package / filename).exists():
