@@ -23,6 +23,14 @@ report = load(
     "generate_visual_report",
     "skills/extract-ecd-spectra/scripts/generate_visual_report.py",
 )
+preflight = load(
+    "preflight_environment",
+    "skills/extract-ecd-spectra/scripts/preflight_environment.py",
+)
+renderer = load(
+    "render_pdf_page",
+    "skills/extract-ecd-spectra/scripts/render_pdf_page.py",
+)
 
 
 def test_all_scripts_parse_with_declared_python_310_grammar():
@@ -33,6 +41,27 @@ def test_all_scripts_parse_with_declared_python_310_grammar():
             filename=str(path),
             feature_version=(3, 10),
         )
+
+
+def test_preflight_reports_current_python_and_required_packages():
+    result = preflight.inspect_environment(Path(preflight.sys.executable))
+    assert result["python_supported"] is True
+    assert set(result["missing_packages"]).issubset(set(preflight.REQUIRED))
+    assert result["python_executable"]
+
+
+def test_pymupdf_renderer_needs_no_poppler(tmp_path):
+    pdf = tmp_path / "one-page.pdf"
+    output = tmp_path / "page.png"
+    document = renderer.fitz.open()
+    document.new_page(width=200, height=100)
+    document.save(pdf)
+    document.close()
+
+    renderer.render_page(pdf, 1, 144, output)
+
+    assert output.exists()
+    assert output.stat().st_size > 0
 
 
 def test_candidate_requires_experimental_structure_and_solvent():

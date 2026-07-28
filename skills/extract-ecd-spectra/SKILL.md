@@ -8,6 +8,43 @@ description: Discover, present for confirmation, extract, separate, digitize, st
 Create an auditable spectrum package. Never silently smooth, normalize, shift,
 rescale, invert, or assign an enantiomer.
 
+## Beginner-first start
+
+Assume the user has never used Codex or a spectroscopy plugin. Start with one
+plain sentence: "I will first check the PDFs and show you the experimental ECD
+curves I can identify; nothing will be extracted until you choose one."
+
+Before reading PDFs, run:
+
+```powershell
+python scripts/preflight_environment.py --runtime WORKDIR/.ecd-runtime --output WORKDIR/ecd-setup-status.json
+```
+
+If the result is `ready`, continue without discussing dependencies. If it is
+`needs_setup` only because packages are missing, explain in one sentence that
+the plugin needs to prepare its local PDF tools, ask permission once, and then
+run:
+
+```powershell
+python scripts/preflight_environment.py --install --runtime WORKDIR/.ecd-runtime --output WORKDIR/ecd-setup-status.json
+```
+
+Never ask the user to install individual Python packages or Poppler. Do not
+show commands, file paths, JSON, masks, thresholds, or implementation jargon
+unless setup fails or the user asks for technical detail. If Python itself is
+unavailable or too old, stop with one concrete instruction appropriate to the
+user's operating system.
+
+After preflight, read `python_executable` from `ecd-setup-status.json` and use
+that executable instead of the generic `python` command for every remaining
+plugin script. The private `.ecd-runtime` belongs to the working directory;
+do not expose it as a user deliverable.
+
+Find the article and Supporting Information PDFs in the open project folder.
+If there is exactly one plausible article/SI pair, state their filenames and
+continue. Ask the user to identify files only when there are multiple plausible
+pairs or a required source is missing.
+
 ## Mandatory discovery gate
 
 Do not begin calibration or digitization immediately after locating an ECD
@@ -44,7 +81,9 @@ python scripts/generate_candidate_review.py candidate-curves.json --output-dir c
 Show the user a compact numbered candidate table containing compound,
 stereoisomer, curve label/color, solvent, source location, and eligibility.
 Link `candidate-review.html` and display useful figure crops. Ask the user to
-select one or more eligible candidate IDs. **Stop here.** Do not render at high
+select one or more eligible candidates by number or name; keep internal IDs
+available in the audit files but do not require the user to type them.
+**Stop here.** Do not render at high
 resolution, calibrate, trace, reconstruct, normalize, or validate a spectrum
 until the user confirms the IDs. Record the confirmation, exact IDs, and UTC
 time in `candidate-selection.json`.
@@ -80,6 +119,10 @@ spectrum, and curve-level overlay.
 Do not show the same full PDF page as evidence for multiple stages. Explain
 what changed and what the user must inspect. Pause only at the human
 checkpoints below.
+
+Use user-facing labels `PENDIENTE`, `EN CURSO`, `REVISAR`, `COMPLETADO`, and
+`BLOQUEADO` when speaking Spanish. At each checkpoint say only: what was
+found, why the decision matters, and the single action required from the user.
 
 ## Required workflow
 

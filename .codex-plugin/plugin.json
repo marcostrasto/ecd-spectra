@@ -1,6 +1,6 @@
 {
   "name": "ecd-spectra",
-  "version": "0.6.0-beta.1",
+  "version": "0.6.0-beta.2",
   "description": "Precise extraction of experimental ECD spectra, measurement conditions, and stereochemical evidence from scientific literature.",
   "author": {
     "name": "Marcos D. García"
