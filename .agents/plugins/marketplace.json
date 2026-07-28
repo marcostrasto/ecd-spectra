@@ -1,0 +1,21 @@
+{
+  "name": "ecd-spectra",
+  "interface": {
+    "displayName": "ECD Spectra"
+  },
+  "plugins": [
+    {
+      "name": "ecd-spectra",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/marcostrasto/ecd-spectra.git",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Research"
+    }
+  ]
+}

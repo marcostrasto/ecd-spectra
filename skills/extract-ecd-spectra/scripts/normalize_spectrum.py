@@ -37,20 +37,43 @@ def main() -> None:
             if not math.isfinite(x) or not math.isfinite(y) or x <= 0:
                 raise SystemExit("All x,y values must be finite and x must be positive")
             nm = wavelength_nm(x, args.x_unit)
-            points.append((nm, HC_EV_NM / nm, 10_000_000.0 / nm, y))
+            points.append(
+                (
+                    nm,
+                    HC_EV_NM / nm,
+                    10_000_000.0 / nm,
+                    y,
+                    row.get("point_status", "observed"),
+                )
+            )
     points.sort(key=lambda point: point[0])
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.writer(stream)
-        writer.writerow(["wavelength_nm", "energy_eV", "wavenumber_cm-1", "intensity", "intensity_unit"])
+        writer.writerow(
+            [
+                "wavelength_nm",
+                "energy_eV",
+                "wavenumber_cm-1",
+                "intensity",
+                "intensity_unit",
+                "point_status",
+            ]
+        )
         writer.writerows(
-            (f"{nm:.10g}", f"{ev:.10g}", f"{wn:.10g}", f"{y:.10g}", args.y_unit)
-            for nm, ev, wn, y in points
+            (
+                f"{nm:.10g}",
+                f"{ev:.10g}",
+                f"{wn:.10g}",
+                f"{y:.10g}",
+                args.y_unit,
+                status,
+            )
+            for nm, ev, wn, y, status in points
         )
     print(f"Wrote {len(points)} canonical points to {args.output}")
 
 
 if __name__ == "__main__":
     main()
-

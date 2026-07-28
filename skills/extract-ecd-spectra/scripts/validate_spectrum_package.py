@@ -57,6 +57,26 @@ def main() -> None:
             value = nested(metadata, field)
             if value in (None, ""):
                 warnings.append(f"Missing or empty metadata: {field}")
+        reconstructed_points = nested(
+            metadata, "extraction.mask_diagnostics.reconstructed_point_count"
+        )
+        unresolved_gaps = nested(
+            metadata, "extraction.mask_diagnostics.unresolved_gap_count"
+        )
+        if isinstance(reconstructed_points, int) and reconstructed_points > 0:
+            if not (args.package / "spectrum_reconstructed.csv").exists():
+                errors.append(
+                    "Metadata reports reconstructed points but "
+                    "spectrum_reconstructed.csv is missing"
+                )
+            warnings.append(
+                f"{reconstructed_points} derived points bridge short gaps; "
+                "review orange segments and preserve spectrum_raw.csv"
+            )
+        if isinstance(unresolved_gaps, int) and unresolved_gaps > 0:
+            warnings.append(
+                f"{unresolved_gaps} long gaps remain unresolved and must stay open"
+            )
 
         solvent = nested(metadata, "experiment.solvent")
         if not isinstance(solvent, dict):

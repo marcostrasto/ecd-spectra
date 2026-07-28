@@ -90,7 +90,9 @@
     "edge_guard_columns": 6,
     "edge_guard_fraction": 0.008,
     "max_mask_fraction_per_column": 0.05,
-    "max_gap_columns": 6
+    "reconstruct_max_gap_columns": 30,
+    "reconstruct_method": "linear",
+    "max_gap_columns": 2
   },
   "processing": {
     "smoothing": "none",

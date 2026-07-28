@@ -1,4 +1,4 @@
 interface:
   display_name: "Extract ECD Spectra"
-  short_description: "Extract ECD spectra with visual progress and reports"
-  default_prompt: "Use $extract-ecd-spectra to separate and extract the requested experimental trace, show visual progress and diagnostic overlays, capture its conditions and stereochemical evidence, and produce a validated package with HTML and Markdown reports."
+  short_description: "Discover and extract verified experimental ECD curves"
+  default_prompt: "Use $extract-ecd-spectra to find experimental ECD curve candidates with unambiguous structure and solvent evidence, ask me to select candidates, then extract confirmed traces with concise visual progress and validated reports."

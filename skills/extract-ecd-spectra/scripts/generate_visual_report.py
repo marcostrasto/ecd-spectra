@@ -5,6 +5,7 @@ import base64
 import csv
 import html
 import json
+import statistics
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -62,10 +63,10 @@ def data_uri(path: Path) -> str:
     return f"data:{mime};base64,{encoded}"
 
 
-def csv_points(path: Path) -> list[list[float]]:
+def csv_points(path: Path) -> list[list]:
     if not path.exists():
         return []
-    points: list[list[float]] = []
+    observed: list[list] = []
     with path.open(encoding="utf-8-sig", newline="") as stream:
         for row in csv.DictReader(stream):
             try:
@@ -73,7 +74,20 @@ def csv_points(path: Path) -> list[list[float]]:
                 y = float(row.get("intensity", row.get("y", "")))
             except (TypeError, ValueError):
                 continue
-            points.append([x, y])
+            observed.append([x, y, row.get("point_status", "observed")])
+    if len(observed) < 2:
+        return observed
+    steps = [
+        current[0] - previous[0]
+        for previous, current in zip(observed, observed[1:])
+        if current[0] > previous[0]
+    ]
+    typical_step = statistics.median(steps) if steps else 0
+    points: list[list] = [observed[0]]
+    for previous, current in zip(observed, observed[1:]):
+        if typical_step and current[0] - previous[0] > typical_step * 3:
+            points.append([None, None, "gap"])
+        points.append(current)
     return points
 
 
@@ -82,6 +96,40 @@ def stage(status: str, label: str, detail: str) -> dict:
 
 
 def build_progress(package: Path, metadata: dict, quality: dict) -> list[dict]:
+    live_progress = read_json(package / "visual-progress.json").get("stages")
+    if isinstance(live_progress, list) and len(live_progress) == 10:
+        progress = [
+            {
+                "id": item.get("id"),
+                "status": item.get("status", "pending"),
+                "label": item.get("label", "Unnamed stage"),
+                "detail": item.get("detail", ""),
+            }
+            for item in live_progress
+            if isinstance(item, dict)
+        ]
+        if len(progress) == 10:
+            validation = next(
+                (item for item in progress if item.get("id") == "validation"),
+                None,
+            )
+            if validation is not None and quality.get("status") in {"warning", "fail"}:
+                validation["status"] = (
+                    "blocked" if quality.get("status") == "fail" else "needs_review"
+                )
+                validation["detail"] = (
+                    f"Validator: {quality.get('status')}; "
+                    f"{len(quality.get('warnings', []))} warning(s)"
+                )
+            report = next(
+                (item for item in progress if item.get("id") == "report"),
+                None,
+            )
+            if report is not None:
+                report["status"] = "complete"
+                report["detail"] = "HTML and Markdown written"
+            return progress
+
     source = metadata.get("source") if isinstance(metadata.get("source"), dict) else {}
     experiment = (
         metadata.get("experiment")
@@ -195,6 +243,10 @@ def detection_rows(metadata: dict) -> list[tuple[str, str]]:
         ("Edge guard columns", display(diagnostics.get("edge_guard_columns"))),
         ("Maximum jump / px", display(trace.get("max_jump_px"))),
         ("Maximum displayed gap / columns", display(trace.get("max_gap_columns"))),
+        ("Maximum reconstructed gap / columns", display(trace.get("reconstruct_max_gap_columns"))),
+        ("Reconstruction method", display(trace.get("reconstruct_method", "linear"))),
+        ("Reconstructed points", display(diagnostics.get("reconstructed_point_count"))),
+        ("Unresolved gaps", display(diagnostics.get("unresolved_gap_count"))),
         ("Smoothing", display(nested(metadata, "processing", "smoothing"))),
         ("Normalization", display(nested(metadata, "processing", "normalization"))),
         ("Spectral shift", display(nested(metadata, "processing", "spectral_shift"))),
@@ -255,7 +307,7 @@ def make_html(
     metadata: dict,
     quality: dict,
     progress: list[dict],
-    points: list[list[float]],
+    points: list[list],
 ) -> str:
     done = sum(item["status"] == "complete" for item in progress)
     percent = round(done / len(progress) * 100)
@@ -341,7 +393,10 @@ body{{background:white}}main{{max-width:none}}.panel,figure,article{{break-insid
 <div class="bar"><i></i></div><small>Human validation:
 {html.escape(display(nested(metadata, "human_validation", "status")))}</small></div></header>
 <section><h2>Workflow progress</h2><ol class="stages">{stage_cards}</ol></section>
-<section><h2>Extracted spectrum</h2><canvas id="plot" width="1080" height="420"></canvas></section>
+<section><h2>Extracted spectrum</h2><canvas id="plot" width="1080" height="420"></canvas>
+<p><b style="color:#087e8b">Blue-green:</b> observed pixels.
+<b style="color:#e67e00">Orange:</b> explicitly reconstructed short gaps.
+Long unresolved gaps remain open.</p></section>
 <section><h2>Visual evidence</h2><div class="grid">{images or '<p>No images available.</p>'}</div></section>
 <section><h2>Curve detection process</h2><table>{detection}</table></section>
 <section class="grid"><div><h2>Experimental conditions</h2><table>{conditions}</table></div>
@@ -354,8 +409,9 @@ overlay before setting <code>human_validation.status</code> to <code>approved</c
 </main>
 <script>
 const pts={point_json};const c=document.getElementById('plot'),x=c.getContext('2d');
-x.clearRect(0,0,c.width,c.height);if(pts.length){{const pad={{l:72,r:24,t:24,b:52}};
-const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);let xmin=Math.min(...xs),xmax=Math.max(...xs);
+const valid=pts.filter(p=>Number.isFinite(p[0])&&Number.isFinite(p[1]));
+x.clearRect(0,0,c.width,c.height);if(valid.length){{const pad={{l:72,r:24,t:24,b:52}};
+const xs=valid.map(p=>p[0]),ys=valid.map(p=>p[1]);let xmin=Math.min(...xs),xmax=Math.max(...xs);
 let ymin=Math.min(...ys),ymax=Math.max(...ys);if(ymin===ymax){{ymin-=1;ymax+=1}}
 const X=v=>pad.l+(v-xmin)/(xmax-xmin)*(c.width-pad.l-pad.r);
 const Y=v=>c.height-pad.b-(v-ymin)/(ymax-ymin)*(c.height-pad.t-pad.b);
@@ -364,8 +420,11 @@ if(ymin<=0&&ymax>=0){{x.beginPath();x.moveTo(pad.l,Y(0));x.lineTo(c.width-pad.r,
 x.fillStyle='#14212b';x.font='14px system-ui';x.fillText(xmin.toFixed(1),pad.l,c.height-22);
 x.fillText(xmax.toFixed(1),c.width-pad.r-42,c.height-22);x.fillText(ymax.toPrecision(4),8,pad.t+5);
 x.fillText(ymin.toPrecision(4),8,c.height-pad.b);x.fillText('wavelength / nm',c.width/2-50,c.height-10);
-x.strokeStyle='#087e8b';x.lineWidth=2.5;x.beginPath();pts.forEach((p,i)=>{{
-const a=X(p[0]),b=Y(p[1]);i?x.lineTo(a,b):x.moveTo(a,b)}});x.stroke()}}
+x.lineWidth=2.5;for(let i=1;i<pts.length;i++){{const a=pts[i-1],b=pts[i];
+if(!Number.isFinite(a[0])||!Number.isFinite(b[0]))continue;
+x.strokeStyle=(a[2]==='reconstructed_linear'||b[2]==='reconstructed_linear')
+?'#e67e00':'#087e8b';x.beginPath();x.moveTo(X(a[0]),Y(a[1]));
+x.lineTo(X(b[0]),Y(b[1]));x.stroke()}}}}
 </script></body></html>"""
 
 
@@ -381,7 +440,12 @@ def main() -> None:
     metadata = read_json(package / "metadata.json")
     quality = read_json(package / "quality_report.json")
     progress = build_progress(package, metadata, quality)
-    points = csv_points(package / "spectrum_canonical.csv")
+    reconstructed_path = package / "spectrum_reconstructed.csv"
+    points = csv_points(
+        reconstructed_path
+        if reconstructed_path.exists()
+        else package / "spectrum_canonical.csv"
+    )
     html_path = args.html or package / "extraction-report.html"
     md_path = args.markdown or package / "extraction-report.md"
     progress_path = package / "visual-progress.json"

@@ -1,0 +1,26 @@
+{
+  "sources": [
+    {
+      "type": "article",
+      "path": "article.pdf"
+    },
+    {
+      "type": "supporting_information",
+      "path": "article_si.pdf"
+    }
+  ],
+  "candidates": [
+    {
+      "candidate_id": "ECD-C01",
+      "spectrum_key": "compound-4|stereoisomer-p|experiment-1",
+      "experimental": true,
+      "compound": "reported compound name and stereoisomer",
+      "structure_reference": "Scheme 1, compound 4",
+      "solvent": "reported solvent string",
+      "source_location": "SI Figure S12, PDF page 18",
+      "curve_identity": "black solid trace labelled E1",
+      "axes_units": "wavelength / nm; delta epsilon / M-1 cm-1",
+      "ambiguities": []
+    }
+  ]
+}

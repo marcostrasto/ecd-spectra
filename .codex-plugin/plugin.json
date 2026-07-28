@@ -1,18 +1,21 @@
 {
   "name": "ecd-spectra",
-  "version": "0.5.0",
+  "version": "0.6.0-beta.1",
   "description": "Precise extraction of experimental ECD spectra, measurement conditions, and stereochemical evidence from scientific literature.",
   "author": {
     "name": "Marcos D. García"
   },
+  "homepage": "https://github.com/marcostrasto/ecd-spectra",
+  "repository": "https://github.com/marcostrasto/ecd-spectra",
+  "keywords": ["ECD", "circular dichroism", "spectroscopy", "digitization"],
   "skills": "./skills/",
   "interface": {
     "displayName": "ECD Spectra",
     "shortDescription": "Recover ECD spectra, conditions, and stereochemical evidence.",
-    "longDescription": "An auditable visual workflow for separating single traces from multi-curve ECD plots, showing progress and diagnostic overlays, capturing experimental conditions and stereochemical evidence, and generating self-contained HTML and Markdown reports.",
+    "longDescription": "An auditable visual workflow that first discovers experimental ECD curve candidates with unambiguous structure and solvent links, pauses for user selection, then separates and validates the chosen traces with concise live progress and diagnostic overlays.",
     "developerName": "Marcos D. García",
     "category": "Research",
     "capabilities": [],
-    "defaultPrompt": "Use $extract-ecd-spectra to separate the requested experimental trace, show diagnostic overlays, and produce a validated numerical package with visual reports."
+    "defaultPrompt": "Use $extract-ecd-spectra to discover eligible experimental ECD curves in the article and supporting information, present their structure, solvent, and source evidence for my selection, then extract confirmed traces with a visual progress monitor and validated reports."
   }
 }
