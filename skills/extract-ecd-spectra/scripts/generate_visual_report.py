@@ -271,7 +271,8 @@ def make_markdown(
         )
     lines.extend(["", "## Experimental conditions", "", "| Field | Value |", "|---|---|"])
     for key, value in condition_rows(metadata):
-        lines.append(f"| {key} | {str(value).replace('|', '\\|')} |")
+        escaped_value = str(value).replace("|", "\\|")
+        lines.append(f"| {key} | {escaped_value} |")
     lines.extend(["", "## Curve detection process", "", "| Field | Value |", "|---|---|"])
     for key, value in detection_rows(metadata):
         lines.append(f"| {key} | {str(value).replace('|', '\\|')} |")
