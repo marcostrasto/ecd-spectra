@@ -42,20 +42,28 @@ If you prefer a prepared training case, use the
 
 ## Install in Codex from GitHub
 
-1. Install and open the Codex desktop app.
-2. Open its terminal and paste this single line:
+![Student quick start: open the PDF project, paste one prompt, approve once, restart, and start extraction.](docs/student-quickstart.svg)
 
-```powershell
-codex plugin marketplace add marcostrasto/ecd-spectra --ref main; codex plugin add ecd-spectra@ecd-spectra
-```
-
-3. Restart Codex and open the folder containing your PDFs as a new project.
-4. Start a new conversation and write:
+1. Install the Codex desktop app.
+2. Put the article PDF and its Supporting Information PDF in one folder.
+3. Open that folder as a project in Codex.
+4. Paste:
 
 ```text
-Use $extract-ecd-spectra with the article and Supporting Information in this
-folder. First show me the experimental ECD curves that can be identified
-unambiguously. Do not extract anything until I choose a candidate.
+Prepare this project to use ECD Spectra from
+https://github.com/marcostrasto/ecd-spectra. Install everything it needs
+automatically. Ask for setup permission only once and never ask me to run
+terminal commands. Verify the result and tell me when to restart Codex.
+```
+
+5. Approve the combined installation once.
+6. When Codex reports that setup is complete, restart the desktop app and open
+   a new conversation in the same project.
+7. Paste:
+
+```text
+Use $extract-ecd-spectra on the article and Supporting Information PDFs in this
+folder. Show me the eligible experimental curves first and wait for my choice.
 ```
 
 The plugin checks its PDF tools automatically and asks once before installing
@@ -64,6 +72,19 @@ number or name. It then displays a ten-step progress monitor and pauses only
 when it needs you to confirm the candidate, an ambiguous calibration, or the
 final curve overlay. You do not need to type candidate IDs or understand the
 technical files produced in the background.
+
+<details>
+<summary>Maintainer setup details</summary>
+
+On Windows and macOS, the bootstrap uses the CLI bundled with the desktop app
+when it is executable. Otherwise, it installs private Node.js and Codex CLI
+runtimes, registers the marketplace, installs the plugin, and verifies the
+result. It does not require administrator access or modify the user's system
+`PATH`. The implementation is in
+[`scripts/bootstrap_windows.ps1`](scripts/bootstrap_windows.ps1) and
+[`scripts/bootstrap_macos.sh`](scripts/bootstrap_macos.sh).
+
+</details>
 
 ## What the result means
 
@@ -77,11 +98,13 @@ fully completed validation.
 
 ## Technical requirements
 
-The current beta uses Python 3.10 or newer and prepares the packages in
-`requirements.txt` after asking permission. A separate Poppler installation is
-no longer required. WebPlotDigitizer or Engauge
-Digitizer is required only when curves cannot be separated safely by the
-automatic workflow.
+The current beta uses Python 3.10 or newer. Inside the Codex desktop app, the
+skill first uses the bundled workspace Python runtime when available and
+creates an isolated `.ecd-runtime` in the PDF project. It installs the packages
+in `requirements.txt` there; it does not modify the system Python environment.
+A separate Poppler installation is no longer required. WebPlotDigitizer or
+Engauge Digitizer is required only when curves cannot be separated safely by
+the automatic workflow and is therefore not part of the standard setup.
 
 ## Reproducibility and copyright
 

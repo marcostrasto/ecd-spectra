@@ -14,10 +14,13 @@ Assume the user has never used Codex or a spectroscopy plugin. Start with one
 plain sentence: "I will first check the PDFs and show you the experimental ECD
 curves I can identify; nothing will be extracted until you choose one."
 
-Before reading PDFs, run:
+Before reading PDFs, locate a Python 3.10+ executable. In the Codex desktop app,
+first use the bundled workspace-dependency runtime when available; do not
+require a system-wide Python installation when the app already supplies one.
+Use that executable for the preflight command:
 
 ```powershell
-python scripts/preflight_environment.py --runtime WORKDIR/.ecd-runtime --output WORKDIR/ecd-setup-status.json
+PYTHON scripts/preflight_environment.py --runtime WORKDIR/.ecd-runtime --output WORKDIR/ecd-setup-status.json
 ```
 
 If the result is `ready`, continue without discussing dependencies. If it is
@@ -26,7 +29,7 @@ the plugin needs to prepare its local PDF tools, ask permission once, and then
 run:
 
 ```powershell
-python scripts/preflight_environment.py --install --runtime WORKDIR/.ecd-runtime --output WORKDIR/ecd-setup-status.json
+PYTHON scripts/preflight_environment.py --install --runtime WORKDIR/.ecd-runtime --output WORKDIR/ecd-setup-status.json
 ```
 
 Never ask the user to install individual Python packages or Poppler. Do not

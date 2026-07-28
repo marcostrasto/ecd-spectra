@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="330" viewBox="0 0 1200 330" role="img" aria-labelledby="title desc">
+  <title id="title">ECD Spectra student quick start</title>
+  <desc id="desc">Open a PDF project, paste the setup prompt, approve once, restart Codex, and start extraction.</desc>
+  <rect width="1200" height="330" rx="24" fill="#f5f7fa"/>
+  <style>
+    .card { fill: white; stroke: #d9e2ec; stroke-width: 2; }
+    .number { fill: #12b886; }
+    .n { font: 700 24px system-ui, sans-serif; fill: white; }
+    .h { font: 700 24px system-ui, sans-serif; fill: #102a43; }
+    .p { font: 18px system-ui, sans-serif; fill: #486581; }
+    .arrow { font: 700 36px system-ui, sans-serif; fill: #829ab1; }
+  </style>
+  <rect class="card" x="30" y="35" width="250" height="260" rx="18"/>
+  <circle class="number" cx="75" cy="80" r="25"/><text class="n" x="68" y="89">1</text>
+  <text class="h" x="55" y="135">Open the project</text>
+  <text class="p" x="55" y="175">One folder containing</text>
+  <text class="p" x="55" y="205">the article PDF and</text>
+  <text class="p" x="55" y="235">Supporting Information.</text>
+
+  <text class="arrow" x="296" y="178">→</text>
+  <rect class="card" x="340" y="35" width="250" height="260" rx="18"/>
+  <circle class="number" cx="385" cy="80" r="25"/><text class="n" x="378" y="89">2</text>
+  <text class="h" x="365" y="135">Paste one prompt</text>
+  <text class="p" x="365" y="175">Codex checks and</text>
+  <text class="p" x="365" y="205">prepares everything.</text>
+  <text class="p" x="365" y="235">No terminal commands.</text>
+
+  <text class="arrow" x="606" y="178">→</text>
+  <rect class="card" x="650" y="35" width="220" height="260" rx="18"/>
+  <circle class="number" cx="695" cy="80" r="25"/><text class="n" x="688" y="89">3</text>
+  <text class="h" x="675" y="135">Approve once</text>
+  <text class="p" x="675" y="175">Allow the combined</text>
+  <text class="p" x="675" y="205">setup, then restart</text>
+  <text class="p" x="675" y="235">Codex when asked.</text>
+
+  <text class="arrow" x="886" y="178">→</text>
+  <rect class="card" x="930" y="35" width="240" height="260" rx="18"/>
+  <circle class="number" cx="975" cy="80" r="25"/><text class="n" x="968" y="89">4</text>
+  <text class="h" x="955" y="135">Start extraction</text>
+  <text class="p" x="955" y="175">Paste the short run</text>
+  <text class="p" x="955" y="205">prompt and choose</text>
+  <text class="p" x="955" y="235">a candidate curve.</text>
+</svg>
