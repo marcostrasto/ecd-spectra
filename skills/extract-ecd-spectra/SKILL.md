@@ -1,6 +1,6 @@
 ---
 name: extract-ecd-spectra
-description: Extract, separate, digitize, standardize, and validate experimental electronic circular dichroism (ECD/CD) spectra, measurement conditions, and stereochemical evidence from scholarly PDFs or plot images. Use for locating ECD figures, recovering individual traces from multi-curve plots, capturing solvents and acquisition conditions, finding crystal structures and direct or indirect stereochemical assignments, calibrating axes, preserving sign and sample identity, producing analysis-ready CSV/JSON packages, and quality-checking literature spectra before comparison with computed ECD.
+description: Discover, present for confirmation, extract, separate, digitize, standardize, and validate experimental electronic circular dichroism (ECD/CD) spectra, measurement conditions, and stereochemical evidence from scholarly PDFs or plot images. Use for finding eligible ECD curves in articles and supporting information, linking each curve unambiguously to a structure and solvent before extraction, recovering individual traces from multi-curve plots, tracking visual progress, and producing auditable CSV/JSON packages.
 ---
 
 # Extract ECD Spectra
@@ -8,41 +8,98 @@ description: Extract, separate, digitize, standardize, and validate experimental
 Create an auditable spectrum package. Never silently smooth, normalize, shift,
 rescale, invert, or assign an enantiomer.
 
-## Visual progress
+## Mandatory discovery gate
 
-Show progress in the conversation throughout the workflow. Use a numbered
-nine-stage status line and update it after each material step:
+Do not begin calibration or digitization immediately after locating an ECD
+figure. First inspect the complete article and all supplied supporting
+information and build `candidate-curves.json`. Inspect every plotted curve,
+but present one candidate per distinct experimental spectrum, not one per
+appearance, page, or panel. Assign a stable `spectrum_key` from sample,
+stereoisomer, experiment, and acquisition conditions. Merge repeated
+renderings with the same key into `occurrences`, preserve every source
+location, and recommend the cleanest panel for extraction. Never merge spectra
+merely because they have similar shapes.
 
-```text
-[1/9] Sources inspected       complete
-[2/9] ECD figure located      complete - Figure 3, PDF page 3
-[3/9] Curves identified       needs review
+A candidate is eligible only when the source establishes all of:
+
+- the plot is an experimental ECD/CD spectrum rather than a computed trace;
+- the curve can be linked unambiguously to a named compound and displayed
+  chemical structure;
+- the stereoisomer/enantiomer identity is explicit when the plot distinguishes
+  stereoisomers;
+- the measurement solvent is explicit and applies to that curve;
+- the figure, page, caption/legend, curve label or color, axes, and units are
+  identifiable.
+
+Never infer a curve-to-structure or solvent link from proximity alone. Mark a
+record `blocked` and state the missing or conflicting facts when any required
+link is ambiguous.
+
+Generate the review artifacts before asking the user:
+
+```powershell
+python scripts/generate_candidate_review.py candidate-curves.json --output-dir candidate-review
 ```
 
-At stages 2, 5, 6, and 7, display the relevant local image when available:
-the figure crop, calibration view, isolated spectrum, and curve-level overlay.
+Show the user a compact numbered candidate table containing compound,
+stereoisomer, curve label/color, solvent, source location, and eligibility.
+Link `candidate-review.html` and display useful figure crops. Ask the user to
+select one or more eligible candidate IDs. **Stop here.** Do not render at high
+resolution, calibrate, trace, reconstruct, normalize, or validate a spectrum
+until the user confirms the IDs. Record the confirmation, exact IDs, and UTC
+time in `candidate-selection.json`.
+
+If there are no eligible candidates, report the blocked records and stop
+without offering extraction.
+
+## Visual progress
+
+Show progress in the conversation throughout the workflow. Maintain
+`visual-progress.json` and `workflow-progress.html` from the beginning, not
+only in the final package. Update them after every material transition:
+
+```powershell
+python scripts/update_workflow_progress.py WORKDIR --stage sources --status in_progress
+python scripts/update_workflow_progress.py WORKDIR --stage candidates --status needs_review --detail "3 eligible candidates"
+```
+
+Use these ten stages and keep the status line ultrashort:
+
+```text
+[###-------] 3/10 · Candidate selection · REVIEW
+```
+
+Allowed states are `pending`, `in_progress`, `needs_review`, `complete`, and
+`blocked`. Never count `needs_review` as complete. The ten stages are:
+sources, candidates, selection, conditions, calibration, separation,
+reconstruction, normalization, validation, report.
+
+At candidates, calibration, separation, and validation, display the relevant
+local image when available: candidate figure crops, calibration view, isolated
+spectrum, and curve-level overlay.
 Do not show the same full PDF page as evidence for multiple stages. Explain
 what changed and what the user must inspect. Pause only at the human
 checkpoints below.
 
 ## Required workflow
 
-1. Locate candidate pages:
+1. Inspect the article and every supplied supporting-information PDF. Locate
+   candidate pages in each source:
 
 ```powershell
 python scripts/locate_spectral_figures.py article.pdf --output candidates.json
 ```
 
-2. Read the candidate page, caption, experimental section, supporting
+2. Read each candidate page, caption, legend, experimental section, supporting
    information, and nearby tables. Search the complete article and supporting
    information for absolute-configuration assignments, crystal structures,
    deposition identifiers, synthetic correlation, chiroptical comparisons,
    optical rotation, chiral chromatography, and other stereochemical evidence.
    Confirm that each item refers to the measured sample or an explicitly
    correlated compound. Also confirm all measurement conditions and axes.
-   Record the source location for every fact. Stop for human confirmation if
-   sample identity, stereochemical assignment, sign, curve identity, solvent,
-   mixture ratio, or units are ambiguous.
+   Record the source location for every fact. Build and validate the
+   curve-level candidate catalog, present eligible and blocked candidates, and
+   require user selection as specified in the mandatory discovery gate.
 
 3. Render the selected page:
 
@@ -81,6 +138,13 @@ color, follows a mirror-image band, or resumes on another curve after a gap,
 reject the automatic extraction and revise the mask. Curves with the same
 color, unresolved overprinting, or ambiguous identity require supervised
 digitization.
+When a different-color curve briefly overprints the selected trace, preserve
+the observation-only data in `spectrum_raw.csv`. The extractor may bridge only
+short, bracketed gaps up to `reconstruct_max_gap_columns`, writing every
+derived point with `point_status=reconstructed_linear` to
+`spectrum_reconstructed.csv`. Show reconstructed segments in orange and leave
+long gaps open in the overlay, isolated spectrum, and HTML plot. Never replace
+the raw CSV or silently connect an unresolved gap.
 For inseparable curves, use WebPlotDigitizer or Engauge and place its untouched
 CSV in `spectrum_raw.csv`; still generate and review an overlay.
 
@@ -111,7 +175,8 @@ python scripts/generate_visual_report.py ECD-SPEC-0001
 ```
 
 Open or link `extraction-report.html` for visual review and also deliver
-`extraction-report.md`, `visual-progress.json`, the CSV files, and
+`extraction-report.md`, `workflow-progress.html`, `visual-progress.json`,
+`candidate-curves.json`, `candidate-selection.json`, the CSV files, and
 `metadata.json`. Regenerate the reports after any metadata, validation, or
 extraction change. The HTML report is read-only and requires no server or
 network connection.
@@ -150,8 +215,8 @@ network connection.
 
 Require human confirmation at:
 
-1. chemical identity, stereoisomer, stereochemical evidence, crystal-structure
-   relationship, curve, units, and experimental conditions;
+1. candidate selection after verifying experimental origin, chemical
+   identity/structure, stereoisomer, curve, solvent, units, and source links;
 2. calibration points when OCR or ticks are ambiguous;
 3. final overlay and sign.
 
@@ -159,7 +224,8 @@ All other checks may run automatically. Escalate any validator warning.
 
 ## Final handoff
 
-Summarize the final status of all nine stages. Link the HTML and Markdown
+Summarize the final status of all ten stages. Link the candidate review,
+progress monitor, and final HTML and Markdown
 reports and each canonical CSV. State explicitly which spectra are approved,
 pending review, rejected, or unsuitable for simulation comparison.
 

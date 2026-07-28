@@ -30,32 +30,57 @@ evidence. Each observation is linked to its source and to the measured sample;
 spectral quality and stereochemical-assignment confidence are assessed
 separately.
 
-## Requirements
+## Before you start
 
-- Codex with personal or team plugins enabled
-- Python 3.10 or newer
-- Python packages listed in `requirements.txt`
-- Poppler (`pdftoppm`) for rendering PDF pages
-- WebPlotDigitizer or Engauge Digitizer for curves that cannot be separated
-  reliably by the automated raster workflow
+Choose a paper that contains experimental ECD spectra. Download both the
+article and its Supporting Information as PDF files and put them together in a
+new folder. The solvent, compound structure, and identity of the curve must be
+clear in the paper; the plugin will stop when any of these links is ambiguous.
 
-Install Python dependencies:
+If you prefer a prepared training case, use the
+[oxo-helicene example](examples/acs-omega-oxohelicene/README.md).
+
+## Install in Codex from GitHub
+
+1. Install and open the Codex desktop app.
+2. Open its terminal and paste these two commands:
 
 ```powershell
-python -m pip install -r requirements.txt
+codex plugin marketplace add marcostrasto/ecd-spectra
+codex plugin add ecd-spectra@ecd-spectra
 ```
 
-## Installation in Codex
-
-Clone this repository, then install or load the repository root as a Codex
-plugin. The manifest is in `.codex-plugin/plugin.json`; the skill is discovered
-from `skills/`.
-
-Invoke it explicitly with:
+3. Restart Codex and open the folder containing your PDFs as a new project.
+4. Start a new conversation and write:
 
 ```text
-$extract-ecd-spectra
+Use $extract-ecd-spectra with the article and Supporting Information in this
+folder. First show me the experimental ECD curves that can be identified
+unambiguously. Do not extract anything until I choose a candidate.
 ```
+
+The plugin first shows a short candidate list. Select an eligible curve by its
+number. It then displays a ten-step progress monitor and pauses only when it
+needs you to confirm the candidate, an ambiguous calibration, or the final
+curve overlay.
+
+## What the result means
+
+- **Complete**: that stage finished without a pending decision.
+- **Review**: the files were produced, but a person must inspect a warning.
+- **Blocked**: the available evidence is insufficient for a defensible result.
+
+The final folder contains the numerical spectrum, metadata, source evidence,
+diagnostic images, and an HTML report. A warning is not silently counted as a
+fully completed validation.
+
+## Technical requirements
+
+The current beta uses Python 3.10 or newer, the packages in
+`requirements.txt`, and Poppler (`pdftoppm`) for PDF rendering. Codex may ask
+permission to install a missing local dependency. WebPlotDigitizer or Engauge
+Digitizer is required only when curves cannot be separated safely by the
+automatic workflow.
 
 ## Reproducibility and copyright
 
@@ -86,5 +111,6 @@ Automated extraction is provisional. A spectrum is accepted only after a person
 checks the isolated curve and overlay, verifies axes and sign, and records
 approval in the package metadata.
 
-No open-source license has been assigned yet. Add one only after choosing the
-intended reuse terms.
+No reuse license has been assigned yet. The repository may be inspected and
+tested publicly, but reuse terms must be selected before presenting it as an
+open-source release.

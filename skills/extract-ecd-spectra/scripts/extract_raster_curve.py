@@ -36,6 +36,41 @@ def choose_trace(mask: np.ndarray, max_jump: float) -> list[tuple[int, float]]:
     return trace
 
 
+def reconstruct_short_gaps(
+    trace: list[tuple[int, float]], max_gap_columns: int
+) -> tuple[list[tuple[int, float, str]], list[dict]]:
+    """Linearly bridge only short, bracketed gaps and label every derived point."""
+    if max_gap_columns < 0:
+        raise SystemExit("trace.reconstruct_max_gap_columns must be non-negative")
+    if not trace:
+        return [], []
+    reconstructed: list[tuple[int, float, str]] = [
+        (trace[0][0], trace[0][1], "observed")
+    ]
+    gaps: list[dict] = []
+    for (left_x, left_y), (right_x, right_y) in zip(trace, trace[1:]):
+        missing = right_x - left_x - 1
+        gap = {
+            "left_column": left_x,
+            "right_column": right_x,
+            "missing_columns": missing,
+            "status": "none",
+        }
+        if 0 < missing <= max_gap_columns:
+            gap["status"] = "reconstructed_linear"
+            width = right_x - left_x
+            for column in range(left_x + 1, right_x):
+                fraction = (column - left_x) / width
+                row = left_y + fraction * (right_y - left_y)
+                reconstructed.append((column, row, "reconstructed_linear"))
+        elif missing > max_gap_columns:
+            gap["status"] = "unresolved"
+        if missing > 0:
+            gaps.append(gap)
+        reconstructed.append((right_x, right_y, "observed"))
+    return reconstructed, gaps
+
+
 def build_trace_mask(crop: np.ndarray, trace_config: dict) -> tuple[np.ndarray, dict]:
     """Build a trace mask while preserving color identity in multi-curve plots."""
     mode = trace_config.get("mode", "color")
@@ -115,6 +150,21 @@ def main() -> None:
     trace = choose_trace(mask, max_jump)
     if len(trace) < 10:
         raise SystemExit("Too few trace columns detected; revise crop, color, or tolerance")
+    reconstruct_max_gap = int(trace_config.get("reconstruct_max_gap_columns", 0))
+    reconstructed_trace, gap_diagnostics = reconstruct_short_gaps(
+        trace, reconstruct_max_gap
+    )
+    mask_diagnostics["gap_count"] = len(gap_diagnostics)
+    mask_diagnostics["reconstructed_gap_count"] = sum(
+        gap["status"] == "reconstructed_linear" for gap in gap_diagnostics
+    )
+    mask_diagnostics["unresolved_gap_count"] = sum(
+        gap["status"] == "unresolved" for gap in gap_diagnostics
+    )
+    mask_diagnostics["reconstructed_point_count"] = sum(
+        status != "observed" for _, _, status in reconstructed_trace
+    )
+    mask_diagnostics["gaps"] = gap_diagnostics
 
     x_min, x_max = float(cal["x_min"]), float(cal["x_max"])
     y_min, y_max = float(cal["y_min"]), float(cal["y_max"])
@@ -133,6 +183,24 @@ def main() -> None:
         writer.writerow(["x", "y"])
         writer.writerows((f"{x:.10g}", f"{y:.10g}") for x, y, _, _ in rows)
 
+    reconstructed_rows = []
+    for local_x, local_y, point_status in reconstructed_trace:
+        x_fraction = local_x / max(1, crop.shape[1] - 1)
+        y_fraction = local_y / max(1, crop.shape[0] - 1)
+        x_value = x_min + x_fraction * (x_max - x_min)
+        y_value = y_max - y_fraction * (y_max - y_min)
+        reconstructed_rows.append(
+            (x_value, y_value, local_x, local_y, point_status)
+        )
+    reconstructed_csv = args.output_dir / "spectrum_reconstructed.csv"
+    with reconstructed_csv.open("w", newline="", encoding="utf-8") as stream:
+        writer = csv.writer(stream)
+        writer.writerow(["x", "y", "point_status"])
+        writer.writerows(
+            (f"{x:.10g}", f"{y:.10g}", status)
+            for x, y, _, _, status in reconstructed_rows
+        )
+
     shutil.copy2(args.image, args.output_dir / "source_page.png")
     source_crop = image.crop((left, top, right + 1, bottom + 1))
     source_crop.save(args.output_dir / "source_figure.png")
@@ -147,7 +215,7 @@ def main() -> None:
     max_gap = int(trace_config.get("max_gap_columns", 6))
     segment: list[tuple[int, float]] = []
     segments: list[list[tuple[int, float]]] = []
-    for _, _, px, py in rows:
+    for _, _, px, py, status in reconstructed_rows:
         if segment and px - segment[-1][0] > max_gap:
             segments.append(segment)
             segment = []
@@ -157,6 +225,16 @@ def main() -> None:
     for points in segments:
         if len(points) > 1:
             draw.line(points, fill=(255, 0, 255), width=radius * 2)
+    for left, right in zip(reconstructed_rows, reconstructed_rows[1:]):
+        if right[2] - left[2] <= max_gap and (
+            left[4] == "reconstructed_linear"
+            or right[4] == "reconstructed_linear"
+        ):
+            draw.line(
+                ((left[2], left[3]), (right[2], right[3])),
+                fill=(255, 140, 0),
+                width=radius * 2,
+            )
     for _, _, px, py in rows[:: max(1, len(rows) // 120)]:
         draw.ellipse((px - radius, py - radius, px + radius, py + radius), fill=(0, 0, 0))
     overlay.save(args.output_dir / "extraction_overlay.png")
@@ -192,16 +270,18 @@ def main() -> None:
             x0 + (x_value - x_min) / (x_max - x_min) * (x1 - x0),
             y1 - (y_value - y_min) / (y_max - y_min) * (y1 - y0),
         )
-        for x_value, y_value, _, _ in rows
+        for x_value, y_value, _, _, _ in reconstructed_rows
     ]
     plot_segments: list[list[tuple[float, float]]] = []
     plot_segment: list[tuple[float, float]] = []
     previous_source_x: int | None = None
-    for point, row in zip(plot_points, rows):
+    plot_statuses: list[str] = []
+    for point, row in zip(plot_points, reconstructed_rows):
         source_x = row[2]
         if previous_source_x is not None and source_x - previous_source_x > max_gap:
             plot_segments.append(plot_segment)
             plot_segment = []
+            plot_statuses.append("observed")
         plot_segment.append(point)
         previous_source_x = source_x
     if plot_segment:
@@ -209,6 +289,20 @@ def main() -> None:
     for points in plot_segments:
         if len(points) > 1:
             plot_draw.line(points, fill=curve_color, width=5)
+    for left, right in zip(reconstructed_rows, reconstructed_rows[1:]):
+        if right[2] - left[2] <= max_gap and (
+            left[4] == "reconstructed_linear"
+            or right[4] == "reconstructed_linear"
+        ):
+            point_left = (
+                x0 + (left[0] - x_min) / (x_max - x_min) * (x1 - x0),
+                y1 - (left[1] - y_min) / (y_max - y_min) * (y1 - y0),
+            )
+            point_right = (
+                x0 + (right[0] - x_min) / (x_max - x_min) * (x1 - x0),
+                y1 - (right[1] - y_min) / (y_max - y_min) * (y1 - y0),
+            )
+            plot_draw.line((point_left, point_right), fill=(255, 140, 0), width=5)
     plot.save(args.output_dir / "isolated_spectrum.png")
 
     detected_columns = len({row[2] for row in rows})
@@ -231,6 +325,15 @@ def main() -> None:
     ):
         report["warnings"].append(
             "Chromatic dark pixels were allowed; multi-color plots can switch curve identity"
+        )
+    if mask_diagnostics["reconstructed_point_count"]:
+        report["warnings"].append(
+            "Short gaps were linearly reconstructed in spectrum_reconstructed.csv; "
+            "spectrum_raw.csv remains observation-only"
+        )
+    if mask_diagnostics["unresolved_gap_count"]:
+        report["warnings"].append(
+            "Long gaps remain unresolved and are not connected"
         )
     if not all(math.isfinite(v) for row in rows for v in row[:2]):
         report["warnings"].append("Non-finite extracted coordinates")
